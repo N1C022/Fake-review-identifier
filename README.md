@@ -46,6 +46,14 @@ python predictor.py "'This product is amazing!'" 5.0 Electronics_5
 ### 4. Run Demo Cases
 Check `demo_cases.json` for examples of inputs to try.
 
+### 5. Run the Web UI (New!)
+Launch the interactive web interface to test reviews in real-time.
+```bash
+python -m uvicorn app:app --reload
+```
+Open your browser at **http://localhost:8000**.
+
+
 ## Model Details
 - **Algorithm**: Logistic Regression with TF-IDF (1-3 ngrams).
 - **Preprocessing**: Stopword removal, standard scaling for ratings.

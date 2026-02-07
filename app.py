@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import predictor
 import json
@@ -17,7 +18,7 @@ class ReviewInput(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Fake Review Radar API is running"}
+    return FileResponse('static/index.html')
 
 @app.post("/predict")
 def predict(input_data: ReviewInput):
