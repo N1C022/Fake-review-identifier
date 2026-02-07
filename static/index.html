@@ -1,23 +1,427 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fake Review Radar</title>
-    <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --primary: #58a6ff;
+            --primary-hover: #1f6feb;
+            --success: #238636;
+            --danger: #da3633;
+            --border: #30363d;
+            --glass: rgba(22, 27, 34, 0.7);
+            --font-family: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .background-glow {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(88, 166, 255, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--text-primary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .rating-input {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        #rating-value {
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        select {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .examples-dropdown {
+            position: relative;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        #load-example-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #load-example-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--card-bg);
+            min-width: 250px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            z-index: 1;
+            margin-top: 5px;
+        }
+
+        .dropdown-content div {
+            color: var(--text-primary);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropdown-content div:hover {
+            background-color: #21262d;
+        }
+
+        .show {
+            display: block;
+        }
+
+        #analyze-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        #analyze-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        #analyze-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Results */
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+
+        .result-section {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .verdict-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .verdict-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        #verdict-text {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .confidence-badge {
+            background: #21262d;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+        }
+
+        .probability-bar-container {
+            height: 8px;
+            background: #21262d;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .probability-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .analysis-summary {
+            color: var(--text-secondary);
+        }
+
+        .explanation-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .explanation-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .reasons-list {
+            list-style: none;
+        }
+
+        .reasons-list li {
+            background: #21262d;
+            margin-bottom: 0.8rem;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reasons-list li.fake-reason {
+            border-left-color: var(--danger);
+        }
+
+        .reasons-list li.genuine-reason {
+            border-left-color: var(--success);
+        }
+
+        .reason-term {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .reason-score {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Fake/Genuine Styles */
+        .is-fake #verdict-text {
+            color: var(--danger);
+            text-shadow: 0 0 20px rgba(218, 54, 51, 0.4);
+        }
+
+        .is-fake .probability-bar {
+            background: var(--danger);
+        }
+
+        .is-genuine #verdict-text {
+            color: var(--success);
+            text-shadow: 0 0 20px rgba(35, 134, 54, 0.4);
+        }
+
+        .is-genuine .probability-bar {
+            background: var(--success);
+        }
+
+        @media (max-width: 600px) {
+            .row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div class="background-glow"></div>
     <div class="container">
         <header>
             <div class="logo">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
                 </svg>
                 <h1>Fake Review Radar</h1>
             </div>
@@ -73,7 +477,7 @@
                         <div class="confidence-badge" id="confidence-badge">95% Confidence</div>
                     </div>
                     <div class="probability-bar-container">
-                        <div class="probability-bar" id="probability-bar"></div> 
+                        <div class="probability-bar" id="probability-bar"></div>
                     </div>
                     <p class="analysis-summary" id="analysis-summary">
                         Based on our analysis, this review appears to be authentic.
@@ -90,6 +494,178 @@
         </main>
     </div>
 
-    <script src="/static/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elements
+            const ratingInput = document.getElementById('rating');
+            const ratingValue = document.getElementById('rating-value');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const reviewText = document.getElementById('review-text');
+            const categorySelect = document.getElementById('category');
+
+            const resultSection = document.getElementById('result-section');
+            const verdictText = document.getElementById('verdict-text');
+            const confidenceBadge = document.getElementById('confidence-badge');
+            const probabilityBar = document.getElementById('probability-bar');
+            const analysisSummary = document.getElementById('analysis-summary');
+            const reasonsList = document.getElementById('reasons-list');
+
+            const loadExampleBtn = document.getElementById('load-example-btn');
+            const examplesList = document.getElementById('examples-list');
+
+            // Rating Slider Update
+            ratingInput.addEventListener('input', (e) => {
+                ratingValue.textContent = parseFloat(e.target.value).toFixed(1);
+            });
+
+            // Load Examples Dropdown
+            loadExampleBtn.addEventListener('click', () => {
+                examplesList.classList.toggle('show');
+                // Always fetch to ensure fresh data if caching was an issue, 
+                // but local list checks are fine.
+                if (examplesList.children.length === 0) {
+                    fetchExamples();
+                }
+            });
+
+            window.onclick = (e) => {
+                if (!e.target.matches('#load-example-btn')) {
+                    if (examplesList.classList.contains('show')) {
+                        examplesList.classList.remove('show');
+                    }
+                }
+            };
+
+            async function fetchExamples() {
+                try {
+                    const response = await fetch('/demo-cases');
+                    const data = await response.json();
+
+                    examplesList.innerHTML = '';
+                    data.forEach(example => {
+                        const div = document.createElement('div');
+                        div.textContent = example.description;
+                        div.addEventListener('click', () => {
+                            // Populate Form
+                            // Remove outer quotes from text if present
+                            let text = example.text;
+                            if ((text.startsWith("'") && text.endsWith("'")) || (text.startsWith('"') && text.endsWith('"'))) {
+                                text = text.slice(1, -1);
+                            }
+
+                            reviewText.value = text;
+                            ratingInput.value = example.rating;
+                            ratingValue.textContent = example.rating.toFixed(1);
+                            categorySelect.value = example.category;
+                        });
+                        examplesList.appendChild(div);
+                    });
+                } catch (error) {
+                    console.error('Error fetching examples:', error);
+                    examplesList.innerHTML = '<div>Error loading examples</div>';
+                }
+            }
+
+            // Analyze Logic
+            analyzeBtn.addEventListener('click', async () => {
+                const text = reviewText.value.trim();
+                const rating = parseFloat(ratingInput.value);
+                const category = categorySelect.value;
+
+                if (!text) {
+                    alert('Please enter review text.');
+                    return;
+                }
+
+                analyzeBtn.disabled = true;
+                analyzeBtn.textContent = 'Analyzing...';
+
+                // Hide previous results
+                resultSection.classList.add('hidden');
+                resultSection.classList.remove('is-fake', 'is-genuine');
+
+                try {
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            text: text,
+                            rating: rating,
+                            category: category
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.detail || 'Analysis failed');
+                    }
+
+                    displayResult(result);
+
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                } finally {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = 'Analyze Review';
+                }
+            });
+
+            function displayResult(result) {
+                // Prepare UI data
+                const isFake = result.label === 'FAKE';
+                const probability = result.fake_probability; // 0 to 1
+                const percentage = Math.round(probability * 100);
+
+                // Update Sections
+                resultSection.classList.remove('hidden');
+                resultSection.classList.add(isFake ? 'is-fake' : 'is-genuine');
+
+                verdictText.textContent = result.label;
+                confidenceBadge.textContent = `${Math.round(isFake ? percentage : 100 - percentage)}% Confidence`;
+
+                // Animate Bar
+                setTimeout(() => {
+                    probabilityBar.style.width = `${percentage}%`;
+                }, 100); // Slight delay for transition
+
+                analysisSummary.textContent = isFake
+                    ? `Our model detected patterns strongly associated with generic or AI-generated reviews.`
+                    : `This review exhibits specific details and patterns typical of authentic user experiences.`;
+
+                // Reasons
+                reasonsList.innerHTML = '';
+                if (result.reasons && Array.isArray(result.reasons)) {
+                    result.reasons.forEach(reasonStr => {
+                        // reasonStr format: "'term' (TYPE, score: 0.45)"
+                        // Parse it roughly
+                        const match = reasonStr.match(/'(.*)' \((.*), score: (.*)\)/);
+                        if (match) {
+                            const term = match[1];
+                            const type = match[2];
+                            const score = match[3];
+
+                            const li = document.createElement('li');
+                            li.className = type === 'FAKE' ? 'fake-reason' : 'genuine-reason';
+
+                            li.innerHTML = `
+                                <span class="reason-term">"${term}"</span>
+                                <span class="reason-score">${type} indicator (Impact: ${score})</span>
+                            `;
+                            reasonsList.appendChild(li);
+                        } else {
+                            // Fallback
+                            const li = document.createElement('li');
+                            li.textContent = reasonStr;
+                            reasonsList.appendChild(li);
+                        }
+                    });
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>
