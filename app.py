@@ -61,8 +61,12 @@ async def predict_batch(file: UploadFile = File(...)):
         content = await file.read()
         df = pd.read_csv(io.BytesIO(content))
         
+        # Handle 'text_' column from fake_reviews_dataset.csv
+        if "text" not in df.columns and "text_" in df.columns:
+            df.rename(columns={"text_": "text"}, inplace=True)
+            
         if "text" not in df.columns:
-            raise HTTPException(status_code=400, detail="CSV must contain a 'text' column")
+            raise HTTPException(status_code=400, detail="CSV must contain a 'text' (or 'text_') column")
             
         results = []
         for _, row in df.iterrows():
