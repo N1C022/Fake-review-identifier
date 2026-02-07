@@ -12,6 +12,27 @@ except FileNotFoundError:
     print(json.dumps({"error": "Model file not found. Please run train.py first."}))
     sys.exit(1)
 
+# Helper function for human-readable reasons
+def get_human_reason(term, direction):
+    """Maps technical tokens to user-friendly explanations."""
+    term = term.lower()
+    
+    if direction == "FAKE":
+        if any(x in term for x in ["plot", "character", "story", "arc", "narrative"]):
+            return "Generic storytelling keywords (common in AI generation)"
+        if any(x in term for x in ["highly recommend", "must read", "amazing", "excellent"]):
+            return "Overly generic praise without specifics"
+        if any(x in term for x in ["structure", "writing", "author", "book"]):
+            return "Formal or analytical tone typical of AI"
+        return f"suspiciously generic usage of '{term}'"
+    else:
+        # GENUINE indicators
+        if any(x in term for x in ["refund", "waste", "garbage", "trash", "worst"]):
+            return "Strong, specific negative sentiment"
+        if any(x in term for x in ["bought", "purchased", "arrived", "shipping", "box"]):
+            return "Specific logistical details"
+        return f"Specific detail: '{term}'"
+
 # Load metadata
 try:
     with open("model_metadata.json", "r") as f:
@@ -121,7 +142,14 @@ def get_explanations(pipeline, text):
     reasons = []
     for feat, score in top_features:
         direction = "FAKE" if score > 0 else "GENUINE"
-        reasons.append(f"'{feat}' ({direction}, score: {score:.2f})")
+        human_label = get_human_reason(feat, direction)
+        
+        reasons.append({
+            "term": feat,
+            "direction": direction,
+            "score": round(float(score), 3),
+            "human_label": human_label
+        })
         
     return reasons
 

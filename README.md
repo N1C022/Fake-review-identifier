@@ -73,7 +73,7 @@ Open your browser at **http://localhost:8000**.
 - **Explainability**: Top contributing n-grams (positive coefficients imply FAKE, negative imply GENUINE).
 
 ### Key Metrics
-We optimise for high precision to avoid false accusations.
+We intentionally optimise for high precision on FAKE to minimise false accusations, accepting lower recall.
 
 **Confusion Matrix:**
 ```

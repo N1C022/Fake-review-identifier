@@ -270,7 +270,7 @@
         }
 
         #verdict-text {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 800;
         }
 
@@ -589,6 +589,10 @@
                         <h2 id="verdict-text">GENUINE</h2>
                         <div class="confidence-badge" id="confidence-badge">95% Confidence</div>
                     </div>
+                    <p class="disclaimer"
+                        style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: -1rem; margin-bottom: 1.5rem;">
+                        Flagged for manual review — not definitive proof.
+                    </p>
                     <div class="probability-bar-container">
                         <div class="probability-bar" id="probability-bar"></div>
                     </div>
@@ -771,8 +775,9 @@
                 resultSection.classList.remove('hidden');
                 resultSection.classList.add(isFake ? 'is-fake' : 'is-genuine');
 
-                verdictText.textContent = result.label;
-                confidenceBadge.textContent = `${Math.round(isFake ? percentage : 100 - percentage)}% Confidence`;
+                // Update Verdict Label
+                verdictText.textContent = isFake ? "High Risk: Likely Fake" : "Low Risk: Likely Authentic";
+                confidenceBadge.textContent = `${Math.round(isFake ? percentage : 100 - percentage)}% Risk Score`;
 
                 // Animate Bar
                 setTimeout(() => {
@@ -786,27 +791,31 @@
                 // Reasons
                 reasonsList.innerHTML = '';
                 if (result.reasons && Array.isArray(result.reasons)) {
-                    result.reasons.forEach(reasonStr => {
-                        // reasonStr format: "'term' (TYPE, score: 0.45)"
-                        // Parse it roughly
-                        const match = reasonStr.match(/'(.*)' \((.*), score: (.*)\)/);
-                        if (match) {
-                            const term = match[1];
-                            const type = match[2];
-                            const score = match[3];
-
+                    result.reasons.forEach(reason => {
+                        // Check if it's the old string format or new object format
+                        if (typeof reason === 'string') {
+                            // Fallback for string format
+                            const match = reason.match(/'(.*)' \((.*), score: (.*)\)/);
+                            if (match) {
+                                const term = match[1];
+                                const type = match[2];
+                                const score = match[3];
+                                const li = document.createElement('li');
+                                li.className = type === 'FAKE' ? 'fake-reason' : 'genuine-reason';
+                                li.innerHTML = `<span class="reason-term">"${term}"</span><span class="reason-score">${type} indicator</span>`;
+                                reasonsList.appendChild(li);
+                            }
+                        } else {
+                            // New Object Format
                             const li = document.createElement('li');
-                            li.className = type === 'FAKE' ? 'fake-reason' : 'genuine-reason';
+                            li.className = reason.direction === 'FAKE' ? 'fake-reason' : 'genuine-reason';
 
                             li.innerHTML = `
-                                <span class="reason-term">"${term}"</span>
-                                <span class="reason-score">${type} indicator (Impact: ${score})</span>
+                                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                    <span class="reason-term" style="font-size: 1rem;">${reason.human_label}</span>
+                                    <span class="reason-score" style="font-size: 0.8rem; opacity: 0.7;">Evidence: usage of "${reason.term}" (Impact: ${reason.score})</span>
+                                </div>
                             `;
-                            reasonsList.appendChild(li);
-                        } else {
-                            // Fallback
-                            const li = document.createElement('li');
-                            li.textContent = reasonStr;
                             reasonsList.appendChild(li);
                         }
                     });
