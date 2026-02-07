@@ -407,6 +407,114 @@
                 gap: 0;
             }
         }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tab-btn:hover:not(.active) {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        /* Batch Upload */
+        .file-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary);
+        }
+
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-label {
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .file-name {
+            display: block;
+            margin-top: 1rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Table */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: var(--glass);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-table th {
+            background: #21262d;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge-fake {
+            background: rgba(218, 54, 51, 0.2);
+            color: #ff7b72;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .badge-genuine {
+            background: rgba(35, 134, 54, 0.2);
+            color: #7ee787;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 
@@ -429,7 +537,12 @@
         </header>
 
         <main>
-            <section class="input-section">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="single">Single Review</button>
+                <button class="tab-btn" data-tab="batch">Batch Upload (CSV)</button>
+            </div>
+
+            <section class="input-section" id="single-section">
                 <div class="input-group">
                     <label for="review-text">Review Text</label>
                     <textarea id="review-text" placeholder="Paste the review content here..."></textarea>
@@ -489,6 +602,41 @@
                     <ul class="reasons-list" id="reasons-list">
                         <!-- Reasons here -->
                     </ul>
+                </div>
+            </section>
+
+            <section class="batch-section hidden" id="batch-section">
+                <div class="input-section">
+                    <div class="file-upload-area" id="drop-zone">
+                        <input type="file" id="csv-file" accept=".csv">
+                        <label for="csv-file" class="file-upload-label">
+                            <strong>Choose a CSV file</strong> or drag it here
+                        </label>
+                        <span class="file-name" id="file-name"></span>
+                    </div>
+                    <button id="analyze-batch-btn">Analyze Batch</button>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
+                        Required column: <code>text</code>. Optional: <code>rating</code>, <code>category</code>.
+                    </p>
+                </div>
+
+                <div id="batch-results" class="hidden">
+                    <h3 style="margin-bottom: 1rem;">Analysis Results</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Review Text</th>
+                                    <th>Category</th>
+                                    <th>Label</th>
+                                    <th>Fake Probability</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batch-table-body">
+                                <!-- Results -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -663,6 +811,124 @@
                         }
                     });
                 }
+            }
+
+            // Tabs
+            const tabs = document.querySelectorAll('.tab-btn');
+            const singleSection = document.getElementById('single-section');
+            const singleResultSection = document.getElementById('result-section');
+            const batchSection = document.getElementById('batch-section');
+
+            if (tabs.length > 0) {
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+
+                        if (tab.dataset.tab === 'single') {
+                            singleSection.classList.remove('hidden');
+                            if (singleResultSection.classList.contains('is-fake') || singleResultSection.classList.contains('is-genuine')) {
+                                singleResultSection.classList.remove('hidden');
+                            }
+                            batchSection.classList.add('hidden');
+                        } else {
+                            singleSection.classList.add('hidden');
+                            singleResultSection.classList.add('hidden');
+                            batchSection.classList.remove('hidden');
+                        }
+                    });
+                });
+            }
+
+            // Batch Upload
+            const csvInput = document.getElementById('csv-file');
+            const fileNameDisplay = document.getElementById('file-name');
+            const analyzeBatchBtn = document.getElementById('analyze-batch-btn');
+            const batchResults = document.getElementById('batch-results');
+            const batchTableBody = document.getElementById('batch-table-body');
+            const dropZone = document.getElementById('drop-zone');
+
+            if (csvInput) {
+                csvInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        fileNameDisplay.textContent = e.target.files[0].name;
+                    }
+                });
+            }
+
+            if (dropZone) {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.style.borderColor = 'var(--primary)';
+                });
+
+                dropZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dropZone.style.borderColor = 'var(--border)';
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.style.borderColor = 'var(--border)';
+                    if (e.dataTransfer.files.length > 0) {
+                        csvInput.files = e.dataTransfer.files;
+                        fileNameDisplay.textContent = e.dataTransfer.files[0].name;
+                    }
+                });
+            }
+
+            if (analyzeBatchBtn) {
+                analyzeBatchBtn.addEventListener('click', async () => {
+                    if (!csvInput.files.length) {
+                        alert('Please select a CSV file first.');
+                        return;
+                    }
+
+                    analyzeBatchBtn.disabled = true;
+                    analyzeBatchBtn.textContent = 'Analyzing...';
+                    batchResults.classList.add('hidden');
+
+                    const formData = new FormData();
+                    formData.append('file', csvInput.files[0]);
+
+                    try {
+                        const response = await fetch('/predict/batch', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const err = await response.json();
+                            throw new Error(err.detail || 'Batch analysis failed');
+                        }
+
+                        const results = await response.json();
+                        displayBatchResults(results);
+
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    } finally {
+                        analyzeBatchBtn.disabled = false;
+                        analyzeBatchBtn.textContent = 'Analyze Batch';
+                    }
+                });
+            }
+
+            function displayBatchResults(results) {
+                batchTableBody.innerHTML = '';
+                results.forEach(row => {
+                    const tr = document.createElement('tr');
+                    const badgeClass = row.label === 'FAKE' ? 'badge-fake' : 'badge-genuine';
+
+                    tr.innerHTML = `
+                        <td>${row.text}</td>
+                        <td>${row.category}</td>
+                        <td><span class="${badgeClass}">${row.label}</span></td>
+                        <td>${row.fake_probability.toFixed(3)}</td>
+                    `;
+                    batchTableBody.appendChild(tr);
+                });
+                batchResults.classList.remove('hidden');
             }
         });
     </script>

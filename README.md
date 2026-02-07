@@ -71,3 +71,28 @@ Open your browser at **http://localhost:8000**.
 - **Algorithm**: Logistic Regression with TF-IDF (1-3 ngrams).
 - **Preprocessing**: Stopword removal, standard scaling for ratings.
 - **Explainability**: Top contributing n-grams (positive coefficients imply FAKE, negative imply GENUINE).
+
+### Key Metrics
+We optimise for high precision to avoid false accusations.
+
+**Confusion Matrix:**
+```
+[[3709  335]  (GENUINE: TN, FP)
+ [ 389 3654]] (FAKE:    FN, TP)
+```
+
+**Precision/Recall at Thresholds:**
+| Threshold | Precision | Recall |
+| :--- | :--- | :--- |
+| **0.7** | 0.957 | 0.838 |
+| **0.8** | 0.975 | 0.778 |
+| **0.9** | 0.988 | 0.671 |
+
+**Recommended Threshold:** 0.439 (Privacy > 90%, Recall ~92%)
+
+## Batch Upload
+You can now upload a CSV file containing reviews to get batch predictions.
+1. Open the Web UI.
+2. Switch to the **Batch Upload** tab.
+3. Upload a CSV with at least a `text` column.
+4. View the results table sorted by risk (highest fake probability first).

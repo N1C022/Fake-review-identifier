@@ -1,10 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import predictor
 import json
 import os
+import csv
+import io
+import pandas as pd
 
 app = FastAPI()
 
@@ -48,6 +51,46 @@ def predict(input_data: ReviewInput):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/predict/batch")
+async def predict_batch(file: UploadFile = File(...)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+
+    try:
+        content = await file.read()
+        df = pd.read_csv(io.BytesIO(content))
+        
+        if "text" not in df.columns:
+            raise HTTPException(status_code=400, detail="CSV must contain a 'text' column")
+            
+        results = []
+        for _, row in df.iterrows():
+            text = str(row.get("text", ""))
+            rating = float(row.get("rating", 5.0))
+            category = str(row.get("category", "Electronics_5"))
+            
+            # Ensure text format is compatible with predictor
+            formatted_text = f'"{text}"' if not (text.startswith('"') or text.startswith("'")) else text
+            
+            pred = predictor.predict_review(formatted_text, rating, category)
+            if "error" not in pred:
+                results.append({
+                    "text": text[:50] + "..." if len(text) > 50 else text,
+                    "rating": rating,
+                    "category": category,
+                    "label": pred["label"],
+                    "fake_probability": pred["fake_probability"],
+                    "threshold_used": pred["threshold_used"]
+                })
+        
+        # Sort by risk (fake_probability descending)
+        results.sort(key=lambda x: x["fake_probability"], reverse=True)
+        
+        return results
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing batch: {str(e)}")
 
 @app.get("/demo-cases")
 def get_demo_cases():

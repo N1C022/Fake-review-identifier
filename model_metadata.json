@@ -1,0 +1,8 @@
+{
+    "recommended_threshold": 0.4390812992261495,
+    "target_precision": 0.9,
+    "recall_at_threshold": 0.9196141479099679,
+    "metrics": {
+        "average_precision": 0.973739812547604
+    }
+}

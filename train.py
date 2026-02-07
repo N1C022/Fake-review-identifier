@@ -9,6 +9,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, precision_recall_curve, average_precision_score
 from sklearn.calibration import CalibratedClassifierCV
+import json
 
 def load_data(filepath):
     df = pd.read_csv(filepath)
@@ -104,20 +105,52 @@ def train_model():
     ap = average_precision_score(y_test, y_proba)
     print(f"Average Precision: {ap:.3f}")
 
-    # Find threshold for high precision (e.g., 0.95)
+    # Calculate metrics at specific thresholds
+    print("\nMetrics at specific thresholds:")
+    for thresh in [0.7, 0.8, 0.9]:
+        # Create predictions based on threshold
+        y_pred_thresh = (y_proba >= thresh).astype(int)
+        cm_thresh = confusion_matrix(y_test, y_pred_thresh)
+        tn, fp, fn, tp = cm_thresh.ravel()
+        p = tp / (tp + fp) if (tp + fp) > 0 else 0
+        r = tp / (tp + fn) if (tp + fn) > 0 else 0
+        print(f"Threshold {thresh}: Precision={p:.3f}, Recall={r:.3f}")
+
+    # Find threshold for high precision (e.g., 0.90)
     target_precision = 0.90
-    idx = np.where(precision >= target_precision)[0][0]
-    suggested_threshold = thresholds[idx] if idx < len(thresholds) else 0.5
+    # precision array is length thresholds + 1
+    # We want the lowest threshold that gives us at least target_precision
+    valid_indices = np.where(precision[:-1] >= target_precision)[0]
+    if len(valid_indices) > 0:
+        idx = valid_indices[0]
+        suggested_threshold = float(thresholds[idx])
+        recall_at_suggested = recall[idx]
+    else:
+        suggested_threshold = 0.5
+        recall_at_suggested = 0.0
+        print(f"Warning: Could not find threshold for precision >= {target_precision}")
+
+    print(f"\nWe optimise for high precision to avoid false accusations.")
     print(f"Suggested threshold for >= {target_precision} precision: {suggested_threshold:.3f}")
-    print(f"Recall at this threshold: {recall[idx]:.3f}")
+    print(f"Recall at this threshold: {recall_at_suggested:.3f}")
 
     # Save
     print("Saving model...")
     joblib.dump(final_model, "fake_review_model.joblib")
     
-    # Save vectorizer explicitly if needed for easy feature lookup, 
-    # but it is inside the pipeline: final_model.named_steps['features'].named_transformers_['text']
+    # Save Metadata
+    metadata = {
+        "recommended_threshold": suggested_threshold,
+        "target_precision": target_precision,
+        "recall_at_threshold": float(recall_at_suggested),
+        "metrics": {
+            "average_precision": float(ap)
+        }
+    }
+    with open("model_metadata.json", "w") as f:
+        json.dump(metadata, f, indent=4)
     
+    print("Saved model_metadata.json")
     print("Done!")
 
 if __name__ == "__main__":
