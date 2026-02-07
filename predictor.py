@@ -190,6 +190,75 @@ def predict_review(text, rating, category):
     
     return result
 
+def predict_batch_df(df):
+    """
+    Efficiently predict for a DataFrame.
+    Expected columns: text, rating, category
+    """
+    # 1. Preprocess Vectorized
+    # We need to ensure columns match what the model pipeline expects.
+    # The pipeline step 'features' -> ColumnTransformer expects 'text_', 'rating', 'category'.
+    
+    # Clean text (remove outer quotes if present)
+    # Using pandas apply is faster than loop but slower than pure string ops, but string ops on series are fast.
+    # df['text'] should be the source.
+    
+    # Create input_df for model
+    input_df = df.copy()
+    
+    # Rename 'text' to 'text_' if needed or ensure text_ exists
+    if 'text_' not in input_df.columns:
+        if 'text' in input_df.columns:
+             input_df['text_'] = input_df['text'].astype(str).str.strip('"').str.strip("'")
+        else:
+             return {"error": "Missing 'text' column"}
+             
+    # Ensure types
+    input_df['rating'] = pd.to_numeric(input_df['rating'], errors='coerce').fillna(5.0)
+    input_df['category'] = input_df['category'].fillna("Electronics_5")
+    
+    # 2. Batch Predict
+    try:
+        # Get probabilities
+        probas = model.predict_proba(input_df)[:, 1]
+        
+        # 3. Format Results
+        results = []
+        
+        # We'll use the recommended threshold from metadata
+        threshold = RECOMMENDED_THRESHOLD
+        
+        # We need to iterate to create the result list, but we have the probas pre-calculated.
+        # This loop is just for dictionary creation, which is much faster than running the model loop.
+        
+        # To get explanations, doing it per-row is still expensive.
+        # For batch, maybe we skip explanations? Or we only generate them for the high-risk ones?
+        # Generating explanations requires feature extraction for each text.
+        # Let's Skip explanations for batch to keep it fast, or maybe only for the top ones later in app.py?
+        # For now, let's leave reasons empty in batch or simple placeholder.
+        
+        # Let's iterate index and proba
+        for idx, prob in enumerate(probas):
+            is_fake = prob >= threshold
+            
+            # Helper to get original text for display
+            original_text = str(df.iloc[idx].get('text', ''))
+            
+            results.append({
+                "text": original_text[:100] + "..." if len(original_text) > 100 else original_text,
+                "rating": float(input_df.iloc[idx]['rating']),
+                "category": str(input_df.iloc[idx]['category']),
+                "label": "FAKE" if is_fake else "GENUINE",
+                "fake_probability": round(float(prob), 3),
+                "threshold_used": threshold,
+                 "reasons": [] # Skipping detailed reasons for batch performance
+            })
+            
+        return results
+        
+    except Exception as e:
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     # Simple CLI
     if len(sys.argv) == 4:

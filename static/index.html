@@ -900,7 +900,7 @@
                     }
 
                     analyzeBatchBtn.disabled = true;
-                    analyzeBatchBtn.textContent = 'Analyzing...';
+                    analyzeBatchBtn.innerHTML = 'Uploading & Analyzing... <br><small>(Large files capped at 2000 rows)</small>';
                     batchResults.classList.add('hidden');
 
                     const formData = new FormData();
@@ -943,6 +943,11 @@
                     `;
                     batchTableBody.appendChild(tr);
                 });
+
+                // Add note about display limit
+                const heading = batchResults.querySelector('h3');
+                if (heading) heading.textContent = `Top ${results.length} High-Risk Reviews`;
+
                 batchResults.classList.remove('hidden');
             }
         });

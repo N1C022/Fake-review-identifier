@@ -68,30 +68,21 @@ async def predict_batch(file: UploadFile = File(...)):
         if "text" not in df.columns:
             raise HTTPException(status_code=400, detail="CSV must contain a 'text' (or 'text_') column")
             
-        results = []
-        for _, row in df.iterrows():
-            text = str(row.get("text", ""))
-            rating = float(row.get("rating", 5.0))
-            category = str(row.get("category", "Electronics_5"))
+        # Optimize: Limit to first 2000 rows to prevent timeout on massive files during Hackathon
+        if len(df) > 2000:
+            df = df.head(2000)
             
-            # Ensure text format is compatible with predictor
-            formatted_text = f'"{text}"' if not (text.startswith('"') or text.startswith("'")) else text
-            
-            pred = predictor.predict_review(formatted_text, rating, category)
-            if "error" not in pred:
-                results.append({
-                    "text": text[:50] + "..." if len(text) > 50 else text,
-                    "rating": rating,
-                    "category": category,
-                    "label": pred["label"],
-                    "fake_probability": pred["fake_probability"],
-                    "threshold_used": pred["threshold_used"]
-                })
+        # Use vectorized batch prediction
+        results = predictor.predict_batch_df(df)
         
+        if isinstance(results, dict) and "error" in results:
+             raise HTTPException(status_code=500, detail=results["error"])
+
         # Sort by risk (fake_probability descending)
         results.sort(key=lambda x: x["fake_probability"], reverse=True)
         
-        return results
+        # Limit result size for UI performance (Top 100)
+        return results[:100]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing batch: {str(e)}")
