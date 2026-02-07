@@ -18,7 +18,11 @@ class ReviewInput(BaseModel):
 
 @app.get("/")
 def read_root():
-    return FileResponse('static/index.html')
+    response = FileResponse('static/index.html')
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 @app.post("/predict")
 def predict(input_data: ReviewInput):
