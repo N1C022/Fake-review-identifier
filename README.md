@@ -48,6 +48,19 @@ Check `demo_cases.json` for examples of inputs to try.
 
 ### 5. Run the Web UI (New!)
 Launch the interactive web interface to test reviews in real-time.
+
+**Windows:**
+Double-click `run_ui.bat` or run:
+```cmd
+run_ui.bat
+```
+
+**Mac/Linux/Bash:**
+```bash
+./run_ui.sh
+```
+
+Or manually:
 ```bash
 python -m uvicorn app:app --reload
 ```
