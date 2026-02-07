@@ -777,16 +777,22 @@
 
                 // Update Verdict Label
                 verdictText.textContent = isFake ? "High Risk: Likely Fake" : "Low Risk: Likely Authentic";
-                confidenceBadge.textContent = `${Math.round(isFake ? percentage : 100 - percentage)}% Risk Score`;
+                confidenceBadge.textContent = `Risk Level: ${isFake ? 'High' : 'Low'} (${percentage}%)`;
 
                 // Animate Bar
                 setTimeout(() => {
                     probabilityBar.style.width = `${percentage}%`;
                 }, 100); // Slight delay for transition
 
-                analysisSummary.textContent = isFake
-                    ? `Our model detected patterns strongly associated with generic or AI-generated reviews.`
-                    : `This review exhibits specific details and patterns typical of authentic user experiences.`;
+                analysisSummary.innerHTML = `
+                    ${isFake
+                        ? 'Our model detected patterns strongly associated with generic or AI-generated reviews.'
+                        : 'This review exhibits specific details and patterns typical of authentic user experiences.'}
+                    <br><br>
+                    <strong>Suggested Action:</strong> ${isFake
+                        ? 'Review manually or request a verified-purchase follow-up.'
+                        : 'No immediate action required.'}
+                `;
 
                 // Reasons
                 reasonsList.innerHTML = '';
