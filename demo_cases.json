@@ -1,0 +1,26 @@
+[
+    {
+        "description": "Genuine positive review",
+        "text": "'I really liked this book. The characters were well developed and the plot kept me guessing until the end.'",
+        "rating": 5.0,
+        "category": "Books_5"
+    },
+    {
+        "description": "Fake positive review (generic)",
+        "text": "'This is the best product ever! I highly recommend it to everyone. Great quality and fast shipping.'",
+        "rating": 5.0,
+        "category": "Electronics_5"
+    },
+    {
+        "description": "Genuine negative review",
+        "text": "'The product arrived damaged and the customer service was unhelpful. Not worth the money.'",
+        "rating": 1.0,
+        "category": "Home_and_Kitchen_5"
+    },
+    {
+        "description": "Fake negative review (competitor attack)",
+        "text": "'Do not buy this. It is a scam. Worst experience of my life.'",
+        "rating": 1.0,
+        "category": "Sports_and_Outdoors_5"
+    }
+]

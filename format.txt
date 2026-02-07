@@ -1,0 +1,13 @@
+Review format: format must be pasted in a single line, must be enclosed in quotation marks
+Rating format: Must be a decimal (e.g. 1.0, 5.0)
+Category: Category must be one of the following:
+Kindle_Store_5
+Books_5
+Pet_Supplies_5
+Home_and_Kitchen_5
+Electronics_5
+Sports_and_Outdoors_5
+Tools_and_Home_Improvement_5
+Clothing_Shoes_and_Jewelry_5
+Toys_and_Games_5
+Movies_and_TV_5
