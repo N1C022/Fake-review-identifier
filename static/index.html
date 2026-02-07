@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Review Radar</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Fake Review Radar</h1>
+            </div>
+            <p class="subtitle">Detect AI-generated and fake reviews with precision.</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <div class="input-group">
+                    <label for="review-text">Review Text</label>
+                    <textarea id="review-text" placeholder="Paste the review content here..."></textarea>
+                    <div class="examples-dropdown">
+                        <button id="load-example-btn">Load Example</button>
+                        <div class="dropdown-content" id="examples-list">
+                            <!-- Examples will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label for="rating">Rating</label>
+                        <div class="rating-input">
+                            <input type="range" id="rating" min="1" max="5" step="0.5" value="5">
+                            <span id="rating-value">5.0</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="category">Category</label>
+                        <select id="category">
+                            <option value="Electronics_5">Electronics</option>
+                            <option value="Books_5">Books</option>
+                            <option value="Home_and_Kitchen_5">Home & Kitchen</option>
+                            <option value="Sports_and_Outdoors_5">Sports & Outdoors</option>
+                            <option value="Clothing_Shoes_and_Jewelry_5">Clothing & Jewelry</option>
+                            <option value="Toys_and_Games_5">Toys & Games</option>
+                            <option value="Movies_and_TV_5">Movies & TV</option>
+                            <option value="Pet_Supplies_5">Pet Supplies</option>
+                            <option value="Kindle_Store_5">Kindle Store</option>
+                            <option value="Tools_and_Home_Improvement_5">Tools & Home Improvement</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="analyze-btn">Analyze Review</button>
+            </section>
+
+            <section class="result-section hidden" id="result-section">
+                <div class="verdict-card">
+                    <div class="verdict-header">
+                        <h2 id="verdict-text">GENUINE</h2>
+                        <div class="confidence-badge" id="confidence-badge">95% Confidence</div>
+                    </div>
+                    <div class="probability-bar-container">
+                        <div class="probability-bar" id="probability-bar"></div> 
+                    </div>
+                    <p class="analysis-summary" id="analysis-summary">
+                        Based on our analysis, this review appears to be authentic.
+                    </p>
+                </div>
+
+                <div class="explanation-card">
+                    <h3>Why?</h3>
+                    <ul class="reasons-list" id="reasons-list">
+                        <!-- Reasons here -->
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
